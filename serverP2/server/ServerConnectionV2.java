@@ -22,36 +22,46 @@ public class ServerConnectionV2 {
 
 private class Connection extends Thread {
 	private int port;
-	private String id = "1";
+	private String id = "0";
 	
 	public Connection(int port) {
 		this.port = port;
 		
 	}
-	
-	
+
+
 	public void run() {
 		Socket clientSocket = null;
+		String clientKey = null;
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
 			System.out.println("Server Socket started: " +  port);
 			while(true) {
 				try {
-				clientSocket = serverSocket.accept();
-				System.out.println("New client connected" + clientSocket.getInetAddress());
-				
-				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-				PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-				System.out.println("Skapar ny tråd för denna clienten" + clientSocket.getInetAddress());
-				ClientHandler ch = new ClientHandler(clientSocket,in,out);
-				
-				clientList.addClient(id, ch);
-				String clientID = (id + clientSocket.getInetAddress());
-				serverController.ui.addClientToUI(clientID);
-				System.out.println(clientList.getID(id));
-				//Skapar ny tråd objekt
-				//Thread clientThread = new ClientHandler(clientSocket, in, out);
-				//clientThread.start();
-				
+					clientSocket = serverSocket.accept();
+
+					System.out.println("Client connected: " + clientSocket.getInetAddress());
+					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+					PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+					System.out.println("Creating new thread for this client: " + clientSocket.getInetAddress());
+					
+					clientKey = clientSocket.getInetAddress().getHostAddress();
+					ClientHandler ch = new ClientHandler(clientSocket,in,out);
+					if(clientList.getList().containsKey(clientKey)) {
+						System.out.println("Already in list");
+					}else {
+						id = Integer.toString(Integer.valueOf(id) + 1);
+						clientList.addClient(clientKey, ch);
+						serverController.ui.addClientToUI(id + ": " + clientKey);
+						System.out.println(clientList.getID(clientKey));
+						System.out.println(clientKey);
+					}
+			
+					//clientList.addClient(id, ch);
+					//String clientID = (id + clientSocket.getInetAddress());
+					//serverController.ui.addClientToUI(clientID);
+					//System.out.println(clientList.getID(id));
+					//System.out.println(clientList.getList());
+	
 				}catch (IOException e) {
 					System.out.println("Något gick fel serversocket");
 					if(clientSocket !=null) {

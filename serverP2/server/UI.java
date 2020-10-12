@@ -76,7 +76,7 @@ public class UI extends JFrame {
 	}
 	
 	public void addClientToUI(String newClient){
-		connectedNodes.append(newClient);
+		connectedNodes.append(newClient + "\n");
 	}
 
 
