@@ -50,7 +50,7 @@ private class Connection extends Thread {
 					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 					PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 					System.out.println("Creating new thread for this client: " + clientSocket.getInetAddress());
-					
+					//Lägg till att varje gång ny anslut så plusa connectedNodes.
 					clientIP = clientSocket.getInetAddress().getHostAddress();
 					
 					System.out.println(clientIP.substring(10));
@@ -124,10 +124,14 @@ private class Connection extends Thread {
 	public void sendCharToEveryNode(String scrambledWord) {
 		System.out.println("I skicka grejen");
 		System.out.println(scrambledWord);
-		for (int i = 0; i<clientList.listSize(); i++) {
+		int counter = 0;
+		for (int i = 2; i<clientList.listSize()+2; i++) {
 			ClientHandler ch = clientList.getID(Integer.toString(i));
-			ch.out.write(scrambledWord.charAt(i));
+			char c = scrambledWord.charAt(counter);
+			System.out.println(c);
+			ch.out.write(Character.toString(c));
 			ch.out.flush();
+			counter++;
 		}
 	}
 }
