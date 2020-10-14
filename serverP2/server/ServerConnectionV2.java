@@ -9,8 +9,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import com.sun.security.sasl.ServerFactoryImpl;
-
 public class ServerConnectionV2 {
 	private ServerController serverController;
 	protected ClientList clientList = new ClientList();
@@ -41,26 +39,26 @@ private class Connection extends Thread {
 				
 				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 				PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-				System.out.println("Skapar ny tråd för denna clienten" + clientSocket.getInetAddress());
+				System.out.println("Skapar ny trï¿½d fï¿½r denna clienten" + clientSocket.getInetAddress());
 				ClientHandler ch = new ClientHandler(clientSocket,in,out);
 				
 				clientList.addClient(id, ch);
 				String clientID = (id + clientSocket.getInetAddress());
-				serverController.ui.addClientToUI(clientID);
+				serverController.gui.addClientToUI(clientID);
 				System.out.println(clientList.getID(id));
-				//Skapar ny tråd objekt
+				//Skapar ny trï¿½d objekt
 				//Thread clientThread = new ClientHandler(clientSocket, in, out);
 				//clientThread.start();
 				
 				}catch (IOException e) {
-					System.out.println("Något gick fel serversocket");
+					System.out.println("Nï¿½got gick fel serversocket");
 					if(clientSocket !=null) {
 						clientSocket.close();
 					}
 				}
 			}
 		} catch (IOException e) {
-			System.out.println("Något gick fel till kopplingen till servern");
+			System.out.println("Nï¿½got gick fel till kopplingen till servern");
 		}
 	}
 }
@@ -82,7 +80,7 @@ private class Connection extends Thread {
 				try {
 					String msg = in.readLine();
 					System.out.println(msg);
-					serverController.ui.writeLog(msg);
+					serverController.gui.writeLog(msg);
 					out.write(msg);
 					out.flush();
 					System.out.println("Server send message!");

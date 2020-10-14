@@ -3,7 +3,6 @@ package server;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -19,7 +18,6 @@ public class UI extends JFrame {
 	private JLabel correctWord = new JLabel();
 	private JPanel rightSide = new JPanel();
 	private JPanel topPanel = new JPanel();
-	private static int port = 3500;
 	
 	
 	
@@ -34,7 +32,7 @@ public class UI extends JFrame {
 		}
 		
 		topPanel.setLayout(new GridLayout(1,2));
-		correctWord.setText("Targer Word:" + "asdfghjkloiuytre");
+		correctWord.setText("Target Word:" + "asdfghjkloiuytre");
 		
 		topPanel.add(correctWord);
 		topPanel.add(serverIP);
@@ -78,11 +76,10 @@ public class UI extends JFrame {
 	public void addClientToUI(String newClient){
 		connectedNodes.append(newClient);
 	}
-
-
-	/*public static void main(String args[]) throws IOException {
-		UI ui = new UI();
-		ServerController sc = new ServerController(ui);
-		ServerConnectionV2 sc2 = new ServerConnectionV2(port);
-	}*/
+	
+//	public static void main(String args[]) {
+//	UI ui = new UI();
+//	ServerController sc = new ServerController(ui);
+//
+//}
 }
