@@ -36,4 +36,9 @@ public class ClientList {
 		}
 		return false;
 	}
+	
+	public synchronized int listSize() {
+		return clientList.size();
+	}
+	
 }

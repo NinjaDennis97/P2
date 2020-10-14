@@ -12,12 +12,15 @@ import java.net.Socket;
 
 public class ServerConnectionV2 {
 	private ServerController serverController;
-	protected ClientList clientList = new ClientList();
+	public ClientList clientList = new ClientList();
 	
 	public ServerConnectionV2(int port, ServerController serverController) {
 		new Connection(port).start();
 		this.serverController = serverController;
 	}
+	
+
+	
 
 private class Connection extends Thread {
 	private int port;
@@ -79,9 +82,7 @@ private class Connection extends Thread {
 		}
 	}
 	
-	public void changeClientIP() {
-		
-	}
+
 }
 	
 	public class ClientHandler extends Thread {
@@ -118,6 +119,15 @@ private class Connection extends Thread {
 					return;
 				}
 			}
+		}
+	}
+	public void sendCharToEveryNode(String scrambledWord) {
+		System.out.println("I skicka grejen");
+		System.out.println(scrambledWord);
+		for (int i = 0; i<clientList.listSize(); i++) {
+			ClientHandler ch = clientList.getID(Integer.toString(i));
+			ch.out.write(scrambledWord.charAt(i));
+			ch.out.flush();
 		}
 	}
 }

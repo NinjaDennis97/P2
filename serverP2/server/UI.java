@@ -3,6 +3,8 @@ package server;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -18,13 +20,14 @@ public class UI extends JFrame {
 	private JLabel serverIP = new JLabel();
 	private JLabel correctWord = new JLabel();
 	private JPanel rightSide = new JPanel();
-	private JPanel topPanel = new JPanel();
-	private static int port = 3500;
+	private JPanel topPanel = new JPanel();	
+	private JButton sendToNodes = new JButton("Send to nodes");
+	private  ServerController serverController;
 	
 	
 	
-	
-	public UI() {
+	public UI(ServerController sc) {
+		this.serverController = sc;
 		try {
 			InetAddress iA = InetAddress.getLocalHost();
 			serverIP.setText("Server IP:" + iA.getHostAddress() );
@@ -33,11 +36,18 @@ public class UI extends JFrame {
 			e.printStackTrace();
 		}
 		
-		topPanel.setLayout(new GridLayout(1,2));
+		topPanel.setLayout(new GridLayout(2,2));
 		correctWord.setText("Targer Word:" + "asdfghjkloiuytre");
 		
 		topPanel.add(correctWord);
 		topPanel.add(serverIP);
+		topPanel.add(sendToNodes);
+		sendToNodes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				serverController.selectWords();
+				
+			}
+		});
 		
 
 		setLayout(new GridLayout(1,2));

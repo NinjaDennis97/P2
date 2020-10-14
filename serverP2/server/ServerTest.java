@@ -13,7 +13,7 @@ public class ServerTest{
 	}
 	
 	public ServerTest() {
-		new ServerController(new UI());
+		new ServerController();
 		
 	}
 }
