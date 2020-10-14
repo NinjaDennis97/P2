@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import com.sun.security.sasl.ServerFactoryImpl;
 
 public class ServerConnectionV2 {
 	private ServerController serverController;
@@ -69,14 +68,14 @@ private class Connection extends Thread {
 					}
 	
 				}catch (IOException e) {
-					System.out.println("Något gick fel serversocket");
+					System.out.println("Nï¿½got gick fel serversocket");
 					if(clientSocket !=null) {
 						clientSocket.close();
 					}
 				}
 			}
 		} catch (IOException e) {
-			System.out.println("Något gick fel till kopplingen till servern");
+			System.out.println("Nï¿½got gick fel till kopplingen till servern");
 		}
 	}
 	

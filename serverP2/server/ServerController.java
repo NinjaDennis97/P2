@@ -118,12 +118,65 @@ public class ServerController {
 					c = word1PossibleChars.charAt(rndIndex);
 					word1PossibleChars = word1PossibleChars.replaceAll(Character.toString(c), "");
 					word2 = getWordWithChar(c, connectedNodesInt - word1.length()+1);
-					System.out.println(word1PossibleChars);
+//					System.out.println(word1PossibleChars);
 				}
 			}else word2 = "";
 		}while(word2 == null);
 		ui.writeLog("gemensambokstav är: " + Character.toString(c));
+		System.out.println(word1 + ", " + word2);
+		prepareWords(word1,word2,c);
 	}
+	
+	private void prepareWords(String word1, String word2, char commonLetter) {
+		String fullWord = "";
+		int totalChars = 0; //Ifall word2 = null blir det fel på längden då?
+		int i = 0;
+		int counter = 0;
+		int letterCounter = 0;
+		char c = '!';
+		String scrambledWord = "";
+		if (word2 == "") {
+			fullWord = word1;
+			totalChars = word1.length();
+			counter = totalChars;
+			
+		} else {
+			fullWord = word1+word2;
+			totalChars = word1.length() + word2.length();
+			counter = totalChars;
+		}
+		do {
+			
+			int randomIndex = rand.nextInt(counter);
+			c = fullWord.charAt(randomIndex);
+			if (c == commonLetter) {
+				for(int j = 0; j < fullWord.length(); j++) {
+					if (fullWord.charAt(j) == c) {
+						letterCounter++;
+						scrambledWord = scrambledWord + c;
+					}
+				}
+				fullWord = fullWord.replaceAll(Character.toString(c), ""); //Hur löser mn problemrt om orden är typ kontroll och tull?
+				i = i+letterCounter;
+				counter = counter - letterCounter;
+			}else {
+				fullWord = fullWord.replaceFirst(Character.toString(c), "");
+				counter--;
+				i++;
+				scrambledWord = scrambledWord + c;
+			}
+			
+			//måste kolla ifall bokstaven finns i båda orden eller ej.
+			
+		}while(i < totalChars);
+		sendCharToNode(scrambledWord);
+		}
+
+
+	private void sendCharToNode(String scrambledWord) {
+		System.out.println(scrambledWord);
+	}
+
 
 	public String getWordWithChar (char c, int lenOfWord) {
 		int rndIndex;
