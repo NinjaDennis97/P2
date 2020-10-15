@@ -50,7 +50,7 @@ private class Connection extends Thread {
 					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 					PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 					System.out.println("Creating new thread for this client: " + clientSocket.getInetAddress());
-					//Lägg till att varje gång ny anslut så plusa connectedNodes.
+					//Lï¿½gg till att varje gï¿½ng ny anslut sï¿½ plusa connectedNodes.
 					clientIP = clientSocket.getInetAddress().getHostAddress();
 					
 					System.out.println(clientIP.substring(10));
@@ -104,9 +104,9 @@ private class Connection extends Thread {
 					String msg = in.readLine();
 					System.out.println(msg);
 					serverController.ui.writeLog(msg);
-					out.write(msg);
-					out.flush();
-					System.out.println("Server send message!");
+//					out.write(msg);
+//					out.flush();
+//					System.out.println("Server send message!");
 				} catch (IOException e) {
 					try {
 						System.out.println("Closing Streams!");

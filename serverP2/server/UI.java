@@ -22,7 +22,7 @@ public class UI extends JFrame {
 	private JPanel rightSide = new JPanel();
 	private JPanel topPanel = new JPanel();	
 	private JButton sendToNodes = new JButton("Send to nodes");
-	private  ServerController serverController;
+	public  ServerController serverController;
 	
 	
 	
