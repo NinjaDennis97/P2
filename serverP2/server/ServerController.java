@@ -28,11 +28,12 @@ public class ServerController {
 	private List<String> list2 = new ArrayList<>();
 	private String word1, word2;
 	private int connectedNodesInt;
+	ServerConnectionV2 sv;
 
-	public ServerController (UI ui) {
-		this.ui = ui;
+	public ServerController () {
+		ui = new UI(this);
 		wordReader();
-		new ServerConnectionV2(port, this);
+		sv = new ServerConnectionV2(port, this);
 	}
 	
 	
@@ -80,26 +81,23 @@ public class ServerController {
 			//	ui.writeLog(line);
 			}
 //			test();
-			ui.writeLog(Integer.toString(list16.size()));
-			ui.writeLog(Integer.toString(list11.size()));
+//			ui.writeLog(Integer.toString(list16.size()));
+//			ui.writeLog(Integer.toString(list11.size()));
 			connectedNodesInt = 10;
-			selectWords();
-			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
-			selectWords();
-			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
-			selectWords();
-			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
-			selectWords();
-			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
-			selectWords();
-			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
-			selectWords();
+//			selectWords();
+//			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
+//			selectWords();
+//			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
+//			selectWords();
+//			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
+//			selectWords();
+//			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
+//			selectWords();
+//			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
+//			selectWords();
 			
-			if(word2.length() > 0)
-				ui.setCorrectWord(word1 + ", " + word2);
-			else
-				ui.setCorrectWord(word1);
-		}
+
+	}
 
 		catch(IOException e) {
 			
@@ -123,11 +121,15 @@ public class ServerController {
 			}else word2 = "";
 		}while(word2 == null);
 		ui.writeLog("gemensambokstav är: " + Character.toString(c));
+		if(word2.length() > 0)
+		ui.setCorrectWord(word1 + ", " + word2);
+	else
+		ui.setCorrectWord(word1);
 		System.out.println(word1 + ", " + word2);
 		prepareWords(word1,word2,c);
 	}
 	
-	private void prepareWords(String word1, String word2, char commonLetter) {
+	public void prepareWords(String word1, String word2, char commonLetter) {
 		String fullWord = "";
 		int totalChars = 0; //Ifall word2 = null blir det fel på längden då?
 		int i = 0;
@@ -141,8 +143,10 @@ public class ServerController {
 			counter = totalChars;
 			
 		} else {
-			fullWord = word1+word2;
-			totalChars = word1.length() + word2.length();
+			String str = word1.substring(0, word1.indexOf(commonLetter)) + word1.substring(word1.indexOf(commonLetter)+1);
+			System.out.println(str);
+			fullWord = str+word2;
+			totalChars = word1.length()-1 + word2.length();
 			counter = totalChars;
 		}
 		do {
@@ -173,8 +177,9 @@ public class ServerController {
 		}
 
 
-	private void sendCharToNode(String scrambledWord) {
+	public void sendCharToNode(String scrambledWord) {
 		System.out.println(scrambledWord);
+		sv.sendCharToEveryNode(scrambledWord);
 	}
 
 

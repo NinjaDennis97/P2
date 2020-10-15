@@ -12,12 +12,15 @@ import java.net.Socket;
 
 public class ServerConnectionV2 {
 	private ServerController serverController;
-	protected ClientList clientList = new ClientList();
+	public ClientList clientList = new ClientList();
 	
 	public ServerConnectionV2(int port, ServerController serverController) {
 		new Connection(port).start();
 		this.serverController = serverController;
 	}
+	
+
+	
 
 private class Connection extends Thread {
 	private int port;
@@ -47,7 +50,7 @@ private class Connection extends Thread {
 					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 					PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 					System.out.println("Creating new thread for this client: " + clientSocket.getInetAddress());
-					
+					//L�gg till att varje g�ng ny anslut s� plusa connectedNodes.
 					clientIP = clientSocket.getInetAddress().getHostAddress();
 					
 					System.out.println(clientIP.substring(10));
@@ -79,9 +82,7 @@ private class Connection extends Thread {
 		}
 	}
 	
-	public void changeClientIP() {
-		
-	}
+
 }
 	
 	public class ClientHandler extends Thread {
@@ -103,9 +104,9 @@ private class Connection extends Thread {
 					String msg = in.readLine();
 					System.out.println(msg);
 					serverController.ui.writeLog(msg);
-					out.write(msg);
-					out.flush();
-					System.out.println("Server send message!");
+//					out.write(msg);
+//					out.flush();
+//					System.out.println("Server send message!");
 				} catch (IOException e) {
 					try {
 						System.out.println("Closing Streams!");
@@ -118,6 +119,19 @@ private class Connection extends Thread {
 					return;
 				}
 			}
+		}
+	}
+	public void sendCharToEveryNode(String scrambledWord) {
+		System.out.println("I skicka grejen");
+		System.out.println(scrambledWord);
+		int counter = 0;
+		for (int i = 2; i<clientList.listSize()+2; i++) {
+			ClientHandler ch = clientList.getID(Integer.toString(i));
+			char c = scrambledWord.charAt(counter);
+			System.out.println(c);
+			ch.out.write(Character.toString(c));
+			ch.out.flush();
+			counter++;
 		}
 	}
 }
