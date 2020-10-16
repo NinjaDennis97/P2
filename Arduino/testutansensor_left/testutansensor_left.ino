@@ -29,7 +29,8 @@ WiFiClient client;
  int right_nbr = 0;
  int up_nbr = 0;
  int down_nbr = 0;
- int rightHighTime, leftHighTime,upHighTime, downHighTime;
+ int rightHighTime, leftHighTime,upHighTime, downHighTime, readTime;
+ int noNeighbourLeft, noNeighbourRight, noNeighbourUp, noNeighbourDown = 0;
  void ICACHE_RAM_ATTR readPinRIGHT();
  void ICACHE_RAM_ATTR readPinLEFT();
  void ICACHE_RAM_ATTR readPinLowRIGHT();
@@ -49,8 +50,8 @@ void setup() {
 
   #define OUTPUT_LEFT D6
   #define INPUT_LEFT D5
-  #define INPUT_RIGHT D2
-  #define OUTPUT_RIGHT D1
+  #define INPUT_RIGHT D1
+  #define OUTPUT_RIGHT D2
 //  #define OUTPUT_UP TX
 //  #define INPUT_UP RX
   #define OUTPUT_DOWN D8
@@ -103,6 +104,7 @@ void setup() {
 void loop() {
   controll.run();
   connection();
+  resetNeighbours();
 
   
   if(digitalRead(INPUT_LEFT) == HIGH && millis()-leftHighTime > 200){
@@ -119,7 +121,6 @@ void loop() {
       pulsesToSendLeft--;
     }
   }
-
 
   if(digitalRead(INPUT_RIGHT) == HIGH && millis()-rightHighTime > 200){
     sendRight = true;
@@ -254,26 +255,25 @@ void connection(){
    Serial.print("trying to connect to: ");
    Serial.println(right_nbr);
     if (client.connect(tempIP, 5000)) {
-     Serial.println(client.write("left"));
+     Serial.println(client.write("left\r"));
      client.flush();
-         String response;
+    String response;
     int i = 0;
-    do{
-      response = client.readStringUntil('\r');
-      Serial.print(++i);
-    }while(response.equals(""));
-
-    //Serial.println(response1 + "1");
-   // Serial.println(response2 + "2");
+    readTime = millis();
+//    do{
+//      response = client.readStringUntil('\r');
+//      Serial.print(++i);
+//    }while(response.equals("") || millis() - readTime < random(30,50));
+//
     Serial.println(response);
-    // String response1 = client.readStringUntil('\r');
-     //String response2 = client.readStringUntil('\r');
-      if(response.equals("ACK") || response.equals("ACK")){
+     String response1 = client.readStringUntil('\r');
+     String response2 = client.readStringUntil('\r');
+      if(response1.equals("ACK") || response2.equals("ACK")){
        Serial.println("WOOOHOOO!!!");
        rightsIP = tempIP;
      }
-     //Serial.println(response1 + "1");
-     //Serial.println(response2 + "2");
+     Serial.println(response1 + "1");
+     Serial.println(response2 + "2");
      
      Serial.println(rightsIP);
     }
@@ -316,4 +316,37 @@ void connection(){
      Serial.println(downsIP);
     }
    } 
+}
+
+void resetNeighbours(){
+    if(digitalRead(INPUT_LEFT) == LOW && noNeighbourLeft == 0){
+    noNeighbourLeft = millis();
+  }
+
+  if((millis() - noNeighbourLeft) > 1000 && digitalRead(INPUT_LEFT == LOW)){
+    sendLeft = false;
+    pulsesToSendLeft = myNbr;
+    countPulsesLeft = false;
+    left_nbr = 0;
+    noNeighbourLeft = 0;
+  }
+
+/*--------------------------------------------------------------*/
+
+    if(digitalRead(INPUT_RIGHT) == LOW && noNeighbourRight == 0){
+    noNeighbourLeft = millis();
+  }
+
+  if((millis() - noNeighbourRight) > 1000 && digitalRead(INPUT_RIGHT == LOW)){
+    sendRight = false;
+    pulsesToSendRight = myNbr;
+    countPulsesRight = false;
+    right_nbr = 0;
+    noNeighbourRight = 0;
+  }
+  /*--------------------------------------------------------------*/
+
+  /*--------------------------------------------------------------*/
+
+  /*--------------------------------------------------------------*/
 }
