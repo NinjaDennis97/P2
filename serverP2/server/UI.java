@@ -37,7 +37,7 @@ public class UI extends JFrame {
 		}
 		
 		topPanel.setLayout(new GridLayout(2,2));
-		correctWord.setText("Targer Word:" + "asdfghjkloiuytre");
+		correctWord.setText("Target Word:" + "asdfghjkloiuytre");
 		
 		topPanel.add(correctWord);
 		topPanel.add(serverIP);

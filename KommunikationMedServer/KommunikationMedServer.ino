@@ -22,9 +22,9 @@ String up_neighbour = "4";
 String down_neighbour = "8";
 String left_neighbour = "10";
 String right_neighbour = "12";
-String my_ID = "17";
 
-IPAddress myIP(192, 168, 0, 29);            // IP address of the server
+
+IPAddress myIP(192, 168, 0, 29);            
 IPAddress gateway(192,168,0,1);
 IPAddress subnet(255,255,255,224);
 
@@ -69,7 +69,6 @@ void loop() {
       WiFi.config(myIP,gateway,subnet);
       Serial.println(myIP);
     } else {
-      Serial.println("I else");
       WriteonOLED(ch.charAt(0));
       }
     
@@ -95,16 +94,19 @@ void WriteonOLED (char ch) {
   display.setTextColor(WHITE);
   display.setCursor(20,7);
   display.println(ch);
+  delay(100);
   display.setTextSize(1);
   display.setCursor(0,0);
   display.println("U:" + up_neighbour);
   display.setCursor(0,41);
   display.println("D:" + down_neighbour);
   display.setCursor(40,0);
+  delay(100);
   display.println("L:" + left_neighbour);
   display.setCursor(40,41);
   display.println("R:" + right_neighbour);
   display.setCursor(0,20);
-  display.println(myIP);
+  display.println(myIP[3]);
   display.display();
+  delay(100);
  }

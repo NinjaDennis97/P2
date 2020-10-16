@@ -26,7 +26,7 @@ public class ServerController {
 	private List<String> list4 = new ArrayList<>();
 	private List<String> list3 = new ArrayList<>();
 	private List<String> list2 = new ArrayList<>();
-	private String word1, word2;
+	public String word1, word2;
 	private int connectedNodesInt;
 	ServerConnectionV2 sv;
 
@@ -83,7 +83,7 @@ public class ServerController {
 //			test();
 //			ui.writeLog(Integer.toString(list16.size()));
 //			ui.writeLog(Integer.toString(list11.size()));
-			connectedNodesInt = 10;
+//			connectedNodesInt = 10;
 //			selectWords();
 //			ui.writeLog(word1 + " och " + word2 + " Det blir " + (word1.length()+ word2.length()-1));
 //			selectWords();
@@ -105,6 +105,8 @@ public class ServerController {
 	}
 	
 	public void selectWords() {
+		connectedNodesInt = sv.clientList.listSize();
+		System.out.println(connectedNodesInt);
 		word2 = null;
 		char c = '!';
 		do {

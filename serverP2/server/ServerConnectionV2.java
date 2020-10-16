@@ -1,7 +1,7 @@
 package server;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.time.*;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -11,7 +11,7 @@ import java.net.Socket;
 
 
 public class ServerConnectionV2 {
-	private ServerController serverController;
+	protected ServerController serverController;
 	public ClientList clientList = new ClientList();
 	
 	public ServerConnectionV2(int port, ServerController serverController) {
@@ -28,6 +28,9 @@ private class Connection extends Thread {
 	private String number ="0";
 	Socket clientSocket = null;
 	String clientIP = null;
+	long firstConnection = 0;
+	long secondConnection = 0;
+	boolean startCounting = false;
 
 	
 	public Connection(int port) {
@@ -53,13 +56,20 @@ private class Connection extends Thread {
 					//L�gg till att varje g�ng ny anslut s� plusa connectedNodes.
 					clientIP = clientSocket.getInetAddress().getHostAddress();
 					
+					if (startCounting = true) {
+						secondConnection = System.currentTimeMillis();
+					}
+						
 					System.out.println(clientIP.substring(10));
 					if(clientList.getList().containsKey(clientIP.substring(10))) {
 						System.out.println("Already in list");
-						ClientHandler ch = new ClientHandler(clientSocket,in,out);
+						ClientHandler ch = new ClientHandler(clientSocket,in,out, id);
 						clientList.addClient(id, ch);
 						serverController.ui.addClientToUI(number + ": " + clientIP);
-
+						firstConnection = 0;
+						secondConnection = 0;
+						startCounting = false;
+				
 					}else {
 						id = Integer.toString(Integer.valueOf(id) + 1);
 						number = Integer.toString(Integer.valueOf(number) + 1);
@@ -68,6 +78,17 @@ private class Connection extends Thread {
 						System.out.println(clientIP);
 						out.write(id);
 						out.flush();
+						firstConnection = System.currentTimeMillis();
+						startCounting = true;
+					}
+					
+					if ((secondConnection - firstConnection) > 10000) {
+							clientList.remove(id);
+							System.out.println("Tog bort från listan.");
+							id = Integer.toString(Integer.valueOf(id) - 1);
+							firstConnection = 0;
+							secondConnection = 0;
+							startCounting = false;
 					}
 	
 				}catch (IOException e) {
@@ -89,12 +110,15 @@ private class Connection extends Thread {
 		final Socket clientSocket;
 		final BufferedReader in;
 		final PrintWriter out;
-		public ClientHandler(Socket clientSocket, BufferedReader in, PrintWriter out ) {
+		final String id;
+		private String korrekt = "korrekt";
+		private String fel = "fel";
+		public ClientHandler(Socket clientSocket, BufferedReader in, PrintWriter out, String id ) {
 			System.out.println("In ClientHandler!!");
 			this.clientSocket = clientSocket;
 			this.in = in;
 			this.out = out;
-			
+			this.id = id;
 			start();
 		}
 
@@ -102,18 +126,26 @@ private class Connection extends Thread {
 			while(true) {
 				try {
 					String msg = in.readLine();
-					System.out.println(msg);
 					serverController.ui.writeLog(msg);
-//					out.write(msg);
-//					out.flush();
-//					System.out.println("Server send message!");
+					if(msg.toLowerCase().equals(serverController.word1 + " " + serverController.word2)) {
+						out.write(korrekt);
+						out.flush();
+					}
+					if(msg.toLowerCase().equals(serverController.word2 + " " + serverController.word1)) {
+						out.write(korrekt);
+						out.flush();
+					} else {
+						out.write(fel);
+						out.flush();
+					}
 				} catch (IOException e) {
 					try {
 						System.out.println("Closing Streams!");
 						in.close();
 						out.close();
 						clientSocket.close();
-
+						clientList.remove(id);
+						System.out.println("Tog bort " + id);
 					} catch (IOException e1) {
 					}
 					return;
@@ -127,11 +159,14 @@ private class Connection extends Thread {
 		int counter = 0;
 		for (int i = 2; i<clientList.listSize()+2; i++) {
 			ClientHandler ch = clientList.getID(Integer.toString(i));
+			if (ch != null) {
 			char c = scrambledWord.charAt(counter);
 			System.out.println(c);
 			ch.out.write(Character.toString(c));
 			ch.out.flush();
 			counter++;
+			}
+
 		}
 	}
 }
