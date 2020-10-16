@@ -109,14 +109,18 @@ private class Connection extends Thread {
 public void sendCharToEveryNode(String scrambledWord) {
 	System.out.println("I skicka grejen");
 	System.out.println(scrambledWord);
+	String ordet = serverController.word1;
+	String ordet2 = serverController.word2;
 	int counter = 0;
 //	for (int i = 2; i<clientList.listSize()+2; i++) {
 //		ClientHandler ch = clientList.getID(Integer.toString(i));
+//		if(ch != null) {
 //		char c = scrambledWord.charAt(counter);
 //		System.out.println(c);
 //		ch.out.write(Character.toString(c));
 //		ch.out.flush();
 //		counter++;
+//	}
 //	}
 	for(Map.Entry<String, ClientHandler> entry: clientList.clientList.entrySet()) {
 		String ID = entry.getKey();
@@ -124,7 +128,8 @@ public void sendCharToEveryNode(String scrambledWord) {
 		if (ch != null) {
 			char c = scrambledWord.charAt(counter);
 			System.out.println(c);
-			ch.out.write(Character.toString(c));
+			//ch.out.write(Character.toString(c));
+			ch.out.write(ordet + ordet2);
 			ch.out.flush();
 			counter++;
 		}
@@ -152,11 +157,19 @@ public void sendCharToEveryNode(String scrambledWord) {
 				try {
 					String msg = in.readLine();
 					serverController.ui.writeLog(msg);
-					if(msg.toLowerCase().equals(serverController.word1 + " " + serverController.word2)) {
+					if(msg.toLowerCase().equals(serverController.word1)) {
 						out.write(korrekt);
 						out.flush();
 					}
-					if(msg.toLowerCase().equals(serverController.word2 + " " + serverController.word1)) {
+					else if(msg.toLowerCase().equals(serverController.word2)) {
+						out.write(korrekt);
+						out.flush();
+					}
+					else if(msg.toLowerCase().equals(serverController.word1 +  serverController.word2)) {
+						out.write(korrekt);
+						out.flush();
+					}
+					else if(msg.toLowerCase().equals(serverController.word2 +  serverController.word1)) {
 						out.write(korrekt);
 						out.flush();
 					} else {
@@ -176,22 +189,6 @@ public void sendCharToEveryNode(String scrambledWord) {
 					return;
 				}
 			}
-		}
-	}
-	public void sendCharToEveryNode(String scrambledWord) {
-		System.out.println("I skicka grejen");
-		System.out.println(scrambledWord);
-		int counter = 0;
-		for (int i = 2; i<clientList.listSize()+2; i++) {
-			ClientHandler ch = clientList.getID(Integer.toString(i));
-			if (ch != null) {
-			char c = scrambledWord.charAt(counter);
-			System.out.println(c);
-			ch.out.write(Character.toString(c));
-			ch.out.flush();
-			counter++;
-			}
-
 		}
 	}
 }

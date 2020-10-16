@@ -56,20 +56,23 @@ void setup() {
 void loop() {
     if(client.connected()){
       Serial.println("Writing to server");
-      client.println("hej");
       client.flush();
   
    while(client.available()){
     //char ch = static_cast<char>(client.read());
     String ch = client.readStringUntil('\r');
-    Serial.println(ch);
+    if (ch != "fel"){
+      Serial.println(ch);
+     client.println(ch);
+    }
+    
     //int someInt = ch - '0';
     if(isDigit(ch.charAt(0))){
       myIP[3]=ch.toInt();
       WiFi.config(myIP,gateway,subnet);
       Serial.println(myIP);
     } else {
-      WriteonOLED(ch.charAt(0));
+      //WriteonOLED(ch.charAt(0));
       }
     }
   }
