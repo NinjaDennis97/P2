@@ -24,13 +24,14 @@ String left_neighbour = "10";
 String right_neighbour = "12";
 
 
-IPAddress myIP(192, 168, 0, 29);            
-IPAddress gateway(192,168,0,1);
-IPAddress subnet(255,255,255,224);
+IPAddress myIP(192, 168, 0, 29);
+IPAddress gateway(192, 168, 0, 1);
+IPAddress subnet(255, 255, 255, 224);
 
 void setup() {
   Serial.begin(9600);  // only for debug
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.display();
   delay(500);
   Serial.println("Setup");
   WiFi.mode(WIFI_STA);
@@ -54,26 +55,65 @@ void setup() {
 }
 
 void loop() {
-    if(client.connected()){
-      Serial.println("Writing to server");
-      client.flush();
-  
-   while(client.available()){
-    //char ch = static_cast<char>(client.read());
-    String ch = client.readStringUntil('\r');
-    if (ch != "fel"){
-      Serial.println(ch);
-     client.println(ch);
-    }
+  if (client.connected()) {
     
-    //int someInt = ch - '0';
-    if(isDigit(ch.charAt(0))){
-      myIP[3]=ch.toInt();
-      WiFi.config(myIP,gateway,subnet);
-      Serial.println(myIP);
-    } else {
-      //WriteonOLED(ch.charAt(0));
+    while (client.available()) {
+      //char ch = static_cast<char>(client.read());
+      String ch = client.readStringUntil('\r');
+      
+      if (isDigit(ch.charAt(0))) {
+        myIP[3] = ch.toInt();
+        WiFi.config(myIP, gateway, subnet);
+        Serial.println(myIP);
       }
+      if(ch == "korrekt"){
+        Serial.println("vi är i korrekt delen");
+        display.clearDisplay();
+        display.setTextColor(WHITE);
+        display.setCursor(0,0);
+        display.println("Grattis ni har klarat spelet!");
+        display.display();
+        delay(2000);
+      }else if (ch == "fel"){
+        display.clearDisplay();
+        display.setTextColor(WHITE);
+        display.setCursor(0, 0);
+        display.println("Ihopsatta ordet är fel. Testa igen!!");
+        display.display();
+        delay(2000);
+      } else if (ch.length() > 1){
+        display.clearDisplay();
+        display.setTextColor(WHITE);
+        display.setCursor(0, 0);
+        display.println(ch);
+        display.display();
+        client.println(ch);
+        delay(2000);
+      } else {
+        Serial.println(ch);
+        client.println(ch);
+        WriteonOLED(ch.charAt(0));
+      }
+
+//      if (ch != "fel") {
+//        Serial.println(ch);
+//        client.println(ch);
+//        WriteonOLED(ch.charAt(0));
+//      } else if(ch = "fel") {
+//        display.clearDisplay();
+//        display.setTextColor(WHITE);
+//        display.setCursor(0, 0);
+//        display.println("Ihopsatta ordet är fel. Testa igen!!");
+//        display.display();
+//        delay(2000);
+//      } else if(ch = "korrekt"){
+//        display.clearDisplay();
+//        display.setTextColor(WHITE);
+//        display.setCursor(0,0);
+//        display.println("Grattis ni har klarat spelet!");
+//        display.display();
+//        delay(2000);
+//      }
     }
   }
   if (!client.connected()) {
@@ -89,8 +129,9 @@ void loop() {
 }
 
 void WriteonOLED (char ch) {
-  delay(1);
   display.clearDisplay();
+  display.display();
+  delay(1000);
   display.setTextSize(5);
   display.setTextColor(WHITE);
   display.setCursor(20, 7);
@@ -101,13 +142,13 @@ void WriteonOLED (char ch) {
   display.println("U:" + up_neighbour);
   display.setCursor(0, 41);
   display.println("D:" + down_neighbour);
-  display.setCursor(40,0);
+  display.setCursor(40, 0);
   delay(100);
   display.println("L:" + left_neighbour);
   display.setCursor(40, 41);
   display.println("R:" + right_neighbour);
-  display.setCursor(0,20);
+  display.setCursor(0, 20);
   display.println(myIP[3]);
   display.display();
-  delay(100);
- }
+  delay(1000);
+}
