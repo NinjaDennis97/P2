@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 
 
 public class ServerConnectionV2 {
@@ -53,7 +54,7 @@ private class Connection extends Thread {
 					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 					PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 					System.out.println("Creating new thread for this client: " + clientSocket.getInetAddress());
-					//L�gg till att varje g�ng ny anslut s� plusa connectedNodes.
+					//Lägg till att varje gång ny anslut så plusa connectedNodes.
 					clientIP = clientSocket.getInetAddress().getHostAddress();
 					
 					if (startCounting = true) {
@@ -92,18 +93,42 @@ private class Connection extends Thread {
 					}
 	
 				}catch (IOException e) {
-					System.out.println("N�got gick fel serversocket");
+					System.out.println("Något gick fel serversocket");
 					if(clientSocket !=null) {
 						clientSocket.close();
 					}
 				}
 			}
 		} catch (IOException e) {
-			System.out.println("N�got gick fel till kopplingen till servern");
+			System.out.println("Något gick fel till kopplingen till servern");
 		}
 	}
 	
 
+}
+public void sendCharToEveryNode(String scrambledWord) {
+	System.out.println("I skicka grejen");
+	System.out.println(scrambledWord);
+	int counter = 0;
+//	for (int i = 2; i<clientList.listSize()+2; i++) {
+//		ClientHandler ch = clientList.getID(Integer.toString(i));
+//		char c = scrambledWord.charAt(counter);
+//		System.out.println(c);
+//		ch.out.write(Character.toString(c));
+//		ch.out.flush();
+//		counter++;
+//	}
+	for(Map.Entry<String, ClientHandler> entry: clientList.clientList.entrySet()) {
+		String ID = entry.getKey();
+		ClientHandler ch = entry.getValue();
+		if (ch != null) {
+			char c = scrambledWord.charAt(counter);
+			System.out.println(c);
+			ch.out.write(Character.toString(c));
+			ch.out.flush();
+			counter++;
+		}
+	}
 }
 	
 	public class ClientHandler extends Thread {

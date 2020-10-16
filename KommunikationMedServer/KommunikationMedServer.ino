@@ -15,7 +15,7 @@ ThreadController controll = ThreadController();
 Thread receiverThread = Thread();
 char ssid[] = "NETGEAR61";               // SSID of your home WiFi
 char pass[] = "12345678";               // password of your home WiFi
-const char* host = "192.168.0.18";
+const char* host = "192.168.0.28";
 const uint16_t port = 3500;
 WiFiClient client;
 String up_neighbour = "4";
@@ -34,7 +34,7 @@ void setup() {
   delay(500);
   Serial.println("Setup");
   WiFi.mode(WIFI_STA);
-  WiFi.config(myIP,gateway,subnet);
+  WiFi.config(myIP, gateway, subnet);
   WiFi.begin(ssid, pass);                 // connects to the WiFi router
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
@@ -44,11 +44,11 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-  client.connect(host,port);
-  if(client.connected()){
+  client.connect(host, port);
+  if (client.connected()) {
     Serial.print("Connection completed");
     Serial.print("Host: "); Serial.println(host);
-  }else{
+  } else {
     Serial.println("Connection failed");
   }
 }
@@ -71,39 +71,37 @@ void loop() {
     } else {
       WriteonOLED(ch.charAt(0));
       }
-    
-  }
-
     }
-  if(!client.connected()){
+  }
+  if (!client.connected()) {
     Serial.println();
     Serial.println("Closing connection");
     client.flush();
     client.stop();
     Serial.println("Connection Closed");
-    client.connect(host,port);
+    client.connect(host, port);
     Serial.println("Reconnecting");
   }
-  delay(4000);
-
+  delay(1000);
 }
 
 void WriteonOLED (char ch) {
+  delay(1);
   display.clearDisplay();
   display.setTextSize(5);
   display.setTextColor(WHITE);
-  display.setCursor(20,7);
+  display.setCursor(20, 7);
   display.println(ch);
   delay(100);
   display.setTextSize(1);
-  display.setCursor(0,0);
+  display.setCursor(0, 0);
   display.println("U:" + up_neighbour);
-  display.setCursor(0,41);
+  display.setCursor(0, 41);
   display.println("D:" + down_neighbour);
   display.setCursor(40,0);
   delay(100);
   display.println("L:" + left_neighbour);
-  display.setCursor(40,41);
+  display.setCursor(40, 41);
   display.println("R:" + right_neighbour);
   display.setCursor(0,20);
   display.println(myIP[3]);

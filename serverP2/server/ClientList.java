@@ -1,15 +1,21 @@
 package server;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import server.ServerConnectionV2.ClientHandler;
 
 public class ClientList {
 	public HashMap<String , ClientHandler> clientList = new HashMap<String, ClientHandler>();
 	
+	
 	public synchronized HashMap<String, ClientHandler> getList(){
 		return clientList;
 	}
+	
 	
 	public synchronized void addClient(String ID, ClientHandler client) {
 		clientList.put(ID, client);
