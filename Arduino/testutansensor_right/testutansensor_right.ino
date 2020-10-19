@@ -25,6 +25,8 @@ WiFiClient client;
  bool countPulsesRight = false;
  bool countPulsesUp = false;
  bool countPulsesDown = false;
+ bool resetNeighbourRight = false;
+ bool resetNeighbourLeft = false;
  int left_nbr = 0;
  int right_nbr = 0;
  int up_nbr = 0;
@@ -105,7 +107,8 @@ void setup() {
 void loop() {
   controll.run();
   connection();
-  resetNeighbours();
+
+
 
   
   if(digitalRead(INPUT_LEFT) == HIGH && millis()-leftHighTime > 200){
@@ -120,6 +123,9 @@ void loop() {
       Serial.print("send l");
       Serial.println(pulsesToSendLeft);
       pulsesToSendLeft--;
+            if(pulsesToSendLeft == 0) {
+        resetNeighbourLeft = true;
+        }
     }
   }
 
@@ -135,6 +141,9 @@ void loop() {
       Serial.println("send2");
       Serial.println(pulsesToSendRight);
       pulsesToSendRight--;
+      if(pulsesToSendRight == 0) {
+        resetNeighbourRight = true;
+        }
     }
   }
 }
@@ -153,6 +162,7 @@ void readPinLEFT(){
       Serial.print("L: ");
       Serial.println(left_nbr);
     }
+      resetNeighbours();
   }
 }
 
@@ -170,7 +180,9 @@ void readPinRIGHT(){
       Serial.print("R: ");
       Serial.println(right_nbr);    
     }
+      resetNeighbours();
   }
+ 
 }
 
 
@@ -325,30 +337,28 @@ void connection(){
 }
 
 void resetNeighbours(){
-    if(digitalRead(INPUT_LEFT) == LOW && noNeighbourLeft == 0){
-    noNeighbourLeft = millis();
-  }
-
-  if((millis() - noNeighbourLeft) > 1000 && digitalRead(INPUT_LEFT == LOW)){
+    if(digitalRead(INPUT_LEFT) == LOW && resetNeighbourLeft == true){
+    if((millis() - leftHighTime) > 1000) {
+    Serial.println("I resetNeighbours vänster");
     sendLeft = false;
     pulsesToSendLeft = myNbr;
     countPulsesLeft = false;
     left_nbr = 0;
     noNeighbourLeft = 0;
+      }
   }
 
 /*--------------------------------------------------------------*/
 
-    if(digitalRead(INPUT_RIGHT) == LOW && noNeighbourRight == 0){
-    noNeighbourLeft = millis();
-  }
-
-  if((millis() - noNeighbourRight) > 1000 && digitalRead(INPUT_RIGHT == LOW)){
+   if(digitalRead(INPUT_RIGHT) == LOW && resetNeighbourRight == true) {
+    if((millis() - rightHighTime) > 1000 ){
+    Serial.println("I resetNeighbours höger");
     sendRight = false;
     pulsesToSendRight = myNbr;
     countPulsesRight = false;
     right_nbr = 0;
     noNeighbourRight = 0;
+      }
   }
   /*--------------------------------------------------------------*/
 
