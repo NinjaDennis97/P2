@@ -12,7 +12,7 @@ char pass[] = "12345678";                 // password of your home WiFi
 WiFiServer server(5000);
 WiFiClient client;
 
- int myNbr = 16;
+ int myNbr = 8;
  int pulsesToSendLeft = myNbr;
  int pulsesToSendRight = myNbr;
  int pulsesToSendUp = myNbr;
@@ -29,7 +29,8 @@ WiFiClient client;
  int right_nbr = 0;
  int up_nbr = 0;
  int down_nbr = 0;
- int rightHighTime, leftHighTime,upHighTime, downHighTime;
+ int rightHighTime, leftHighTime,upHighTime, downHighTime, readTime; 
+ int rightLowTime, leftLowTime,upLowTime, downLowTime = 0;
  void ICACHE_RAM_ATTR readPinRIGHT();
  void ICACHE_RAM_ATTR readPinLEFT();
  void ICACHE_RAM_ATTR readPinLowRIGHT();
@@ -47,22 +48,33 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  #define OUTPUT_LEFT D5
-  #define INPUT_RIGHT D1
+  #define OUTPUT_LEFT D3
   #define INPUT_LEFT D6
-  #define OUTPUT_RIGHT D2
+  #define INPUT_RIGHT D5
+  #define OUTPUT_RIGHT D4
+  #define OUTPUT_DOWN D8
+  #define INPUT_DOWN D8
+  #define INPUT_UP D7
   attachInterrupt(digitalPinToInterrupt(INPUT_RIGHT), readPinRIGHT, CHANGE);
   attachInterrupt(digitalPinToInterrupt(INPUT_LEFT), readPinLEFT, CHANGE);
 
 
   pinMode (OUTPUT_LEFT,OUTPUT);
-  //digitalWrite(SENSOR, HIGH);
+  pinMode (INPUT_LEFT,INPUT);
   pinMode (INPUT_RIGHT,INPUT);
   pinMode (OUTPUT_RIGHT,OUTPUT);
-  pinMode (INPUT_LEFT,INPUT);
+  
+  //pinMode (OUTPUT_UP,OUTPUT);
+  //pinMode (INPUT_UP,INPUT);
+  pinMode (INPUT_DOWN,INPUT);
+  pinMode (OUTPUT_DOWN,OUTPUT);
+
 
   digitalWrite(OUTPUT_LEFT, HIGH);
   digitalWrite(OUTPUT_RIGHT, HIGH);
+//  digitalWrite(OUTPUT_UP, HIGH);
+  digitalWrite(OUTPUT_DOWN, HIGH);
+
 
   Serial.println("Setup");
   WiFi.config(myIP, gateway, subnet);                       // forces to use the fix IP
@@ -92,16 +104,17 @@ void setup() {
 void loop() {
   controll.run();
   connection();
+  resetNeighbours();
 
   
-  if(digitalRead(INPUT_LEFT) == HIGH && millis()-leftHighTime > 200){
+  if(digitalRead(INPUT_LEFT) == HIGH && millis()-leftHighTime > 400){
     sendLeft = true;
   }
   
   if(sendLeft == true){
     if(pulsesToSendLeft > 0){
       digitalWrite(OUTPUT_LEFT, LOW);
-      delay(1);
+      delay(5);
       digitalWrite(OUTPUT_LEFT, HIGH);
       Serial.print("send l");
       Serial.println(pulsesToSendLeft);
@@ -110,15 +123,15 @@ void loop() {
   }
 
 
-  if(digitalRead(INPUT_RIGHT) == HIGH && millis()-rightHighTime > 200){
+  if(digitalRead(INPUT_RIGHT) == HIGH && millis()-rightHighTime > 400){
     sendRight = true;
   }
   if(sendRight){
     if(pulsesToSendRight > 0){
       digitalWrite(OUTPUT_RIGHT, LOW);
-      delay(1);
+      delay(5);
       digitalWrite(OUTPUT_RIGHT, HIGH);
-
+      Serial.println("send2");
       Serial.println(pulsesToSendRight);
       pulsesToSendRight--;
     }
@@ -131,6 +144,7 @@ void readPinLEFT(){
     leftHighTime = millis();
   }
   if(readedValue == LOW){
+      leftLowTime = millis();
       if(millis()-leftHighTime > 100){
       countPulsesLeft = true;
       }
@@ -148,6 +162,7 @@ void readPinRIGHT(){
     rightHighTime = millis();
   }
   if(readedValue == LOW){
+    rightLowTime = millis();
       if(millis()-rightHighTime > 100){
         countPulsesRight = true;
       }
@@ -223,17 +238,26 @@ void connection(){
   IPAddress tempIP(192, 168, 0, left_nbr);
   Serial.print("trying to connect to: ");
   Serial.println(left_nbr);
+  delay(50);
   if (client.connect(tempIP, 5000)) {
-    Serial.println(client.write("right"));
+    Serial.println(client.write("right\r"));
     client.flush();
     String response1 = client.readStringUntil('\r');
     String response2 = client.readStringUntil('\r');
+    String response;
+    int i = 0;
+    readTime = millis();
+//    do{
+//      response = client.readStringUntil('\r');
+//      Serial.print(++i);
+//    }while(response.equals("") || (millis()- readTime) < random(30,50) );
     if(response1.equals("ACK") || response2.equals("ACK")){
       Serial.println("WOOOHOOO!!!");
       leftsIP = tempIP;
     }
-    Serial.println(response1 + "1");
-    Serial.println(response2 + "2");
+    //Serial.println(response1 + "1");
+   // Serial.println(response2 + "2");
+    Serial.println(response);
     Serial.println(leftsIP);
    }
   }
@@ -245,14 +269,19 @@ void connection(){
     if (client.connect(tempIP, 5000)) {
      Serial.println(client.write("left"));
      client.flush();
-     String response1 = client.readStringUntil('\r');
-     String response2 = client.readStringUntil('\r');
-      if(response1.equals("ACK") || response2.equals("ACK")){
+    // String response1 = client.readStringUntil('\r');
+    // String response2 = client.readStringUntil('\r');
+    String response;
+    do{
+      response = client.readStringUntil('\r');
+    }while(response.equals(""));
+      if(response.equals("ACK") || response.equals("ACK")){
        Serial.println("WOOOHOOO!!!");
        rightsIP = tempIP;
      }
-     Serial.println(response1 + "1");
-     Serial.println(response2 + "2");
+//     Serial.println(response1 + "1");
+//     Serial.println(response2 + "2");
+     Serial.println(response);
      Serial.println(rightsIP);
     }
    }
@@ -294,4 +323,36 @@ void connection(){
      Serial.println(downsIP);
     }
    } 
+}
+
+void resetNeighbours(){
+ if(digitalRead(INPUT_LEFT) == LOW){
+  if(leftLowTime != 0 && (millis() - leftLowTime) > 2000){
+    Serial.println("resetN2");
+    sendLeft = false;
+    pulsesToSendLeft = myNbr;
+    countPulsesLeft = false;
+    left_nbr = 0;
+    leftsIP[3] = 0;
+    leftLowTime = 0;
+  }
+}
+/*--------------------------------------------------------------*/
+
+ if(digitalRead(INPUT_RIGHT) == LOW){
+  if(rightLowTime !=0 && (millis() - rightLowTime) > 2000){
+    Serial.println("resetN4");
+    sendRight = false;
+    pulsesToSendRight = myNbr;
+    countPulsesRight = false;
+    right_nbr = 0;
+    rightsIP[3] = 0;
+    rightLowTime = 0;
+  }
+ }
+  /*--------------------------------------------------------------*/
+
+  /*--------------------------------------------------------------*/
+
+  /*--------------------------------------------------------------*/
 }
