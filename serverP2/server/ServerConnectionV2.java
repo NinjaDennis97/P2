@@ -128,8 +128,8 @@ public class ServerConnectionV2 {
 			if (ch != null) {
 				char c = scrambledWord.charAt(counter);
 				System.out.println(c);
-				//ch.out.write(Character.toString(c));
-				ch.out.write(ordet + ordet2);
+				ch.out.write(Character.toString(c));
+				//ch.out.write(ordet + ordet2);
 				ch.out.flush();
 				counter++;
 			}

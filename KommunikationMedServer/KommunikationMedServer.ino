@@ -13,10 +13,12 @@ Adafruit_SSD1306 display(OLED_RESET);
 
 ThreadController controll = ThreadController();
 Thread receiverThread = Thread();
+
 char ssid[] = "NETGEAR61";               // SSID of your home WiFi
 char pass[] = "12345678";               // password of your home WiFi
 const char* host = "192.168.0.28";
 const uint16_t port = 3500;
+
 WiFiClient client;
 String up_neighbour = "4";
 String down_neighbour = "8";
