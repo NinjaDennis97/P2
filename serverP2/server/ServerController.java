@@ -105,8 +105,7 @@ public class ServerController {
 	}
 	
 	public void selectWords() {
-		//connectedNodesInt = sv.clientList.listSize();
-		connectedNodesInt = 5;
+		connectedNodesInt = sv.clientList.listSize();
 		System.out.println(connectedNodesInt);
 		word2 = null;
 		char c = '!';

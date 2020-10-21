@@ -54,7 +54,7 @@ public class ServerConnectionV2 {
 						BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 						PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 						System.out.println("Creating new thread for this client: " + clientSocket.getInetAddress());
-						//Lägg till att varje gång ny anslut så plusa connectedNodes.
+						//LÃ¤gg till att varje gÃ¥ng ny anslut sÃ¥ plusa connectedNodes.
 						clientIP = clientSocket.getInetAddress().getHostAddress();
 
 						if (startCounting = true) {
@@ -85,7 +85,7 @@ public class ServerConnectionV2 {
 
 						if ((secondConnection - firstConnection) > 10000) {
 							clientList.remove(id);
-							System.out.println("Tog bort från listan.");
+							System.out.println("Tog bort frÃ¥n listan.");
 							id = Integer.toString(Integer.valueOf(id) - 1);
 							firstConnection = 0;
 							secondConnection = 0;
@@ -93,24 +93,26 @@ public class ServerConnectionV2 {
 						}
 
 					}catch (IOException e) {
-						System.out.println("Något gick fel serversocket");
+						System.out.println("NÃ¥got gick fel serversocket");
 						if(clientSocket !=null) {
 							clientSocket.close();
 						}
 					}
 				}
 			} catch (IOException e) {
-				System.out.println("Något gick fel till kopplingen till servern");
+				System.out.println("NÃ¥got gick fel till kopplingen till servern");
 			}
 		}
 
 
 	}
+	
 	public void sendCharToEveryNode(String scrambledWord) {
 		System.out.println("I skicka grejen");
 		System.out.println(scrambledWord);
 		String ordet = serverController.word1;
 		String ordet2 = serverController.word2;
+		int nbrNodes = clientList.listSize();
 		int counter = 0;
 		//	for (int i = 2; i<clientList.listSize()+2; i++) {
 		//		ClientHandler ch = clientList.getID(Integer.toString(i));
@@ -126,8 +128,10 @@ public class ServerConnectionV2 {
 			String ID = entry.getKey();
 			ClientHandler ch = entry.getValue();
 			if (ch != null) {
-				char c = scrambledWord.charAt(counter);
+				//char c = scrambledWord.charAt(counter);
+				char c = ("åäö").charAt(counter);
 				System.out.println(c);
+				ch.out.write(Integer.toString(nbrNodes) + "\r");
 				ch.out.write(Character.toString(c));
 				//ch.out.write(ordet + ordet2);
 				ch.out.flush();
@@ -151,6 +155,18 @@ public class ServerConnectionV2 {
 			this.id = id;
 			start();
 		}
+		
+		public void sendToEveryNode(String message) {
+			for(Map.Entry<String, ClientHandler> entry: clientList.clientList.entrySet()) {
+				ClientHandler ch = entry.getValue();
+				
+				if(ch != null) {
+					ch.out.write(message);
+					ch.out.flush();
+				}
+			
+			}
+		}
 
 		public void run(){
 			while(true) {
@@ -161,23 +177,25 @@ public class ServerConnectionV2 {
 					System.out.println(serverController.word1 + serverController.word2);
 					if(msg.length() > 1) {
 						if(msg.toLowerCase().equals(serverController.word1)) {
-							out.write(korrekt);
-							out.flush();
+							sendToEveryNode(korrekt);
 						}
 						else if(msg.toLowerCase().equals(serverController.word2)) {
-							out.write(korrekt);
-							out.flush();
+							sendToEveryNode(korrekt);
+
 						}
 						else if(msg.toLowerCase().equals(serverController.word1 +  serverController.word2)) {
-							out.write(korrekt);
-							out.flush();
+							sendToEveryNode(korrekt);
+
 						}
 						else if(msg.toLowerCase().equals(serverController.word2 +  serverController.word1)) {
-							out.write(korrekt);
-							out.flush();
-						} else {
-							out.write(fel);
-							out.flush();
+							sendToEveryNode(korrekt);
+
+						} else if(msg.toLowerCase().equals("som")) {
+							sendToEveryNode(korrekt);
+
+						}	else {
+							sendToEveryNode(fel);
+
 						}
 					}
 
