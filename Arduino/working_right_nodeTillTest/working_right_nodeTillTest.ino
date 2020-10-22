@@ -76,11 +76,11 @@ void setup() {
   delay(500);
 
 #define OUTPUT_LEFT D3
-#define INPUT_LEFT D6
-#define INPUT_RIGHT D5
+#define INPUT_LEFT D8
+#define INPUT_RIGHT D6
 #define OUTPUT_RIGHT D4
-#define OUTPUT_DOWN D8
-#define INPUT_DOWN D8
+//#define OUTPUT_DOWN D8
+#define INPUT_DOWN D7
 #define INPUT_UP D7
   attachInterrupt(digitalPinToInterrupt(INPUT_RIGHT), readPinRIGHT, CHANGE);
   attachInterrupt(digitalPinToInterrupt(INPUT_LEFT), readPinLEFT, CHANGE);
@@ -271,7 +271,10 @@ void readLetter() {
       Serial.println(ch);
       javaClient.println(ch);
       own_letter = ch;
- //     own_letter = (ch.charAt(0));
+      left_str = "";
+      right_str = "";
+      up_str = "";
+      down_str = "";
       uppdateNeighborsOLED();
     }
   }
