@@ -128,8 +128,8 @@ public class ServerConnectionV2 {
 			String ID = entry.getKey();
 			ClientHandler ch = entry.getValue();
 			if (ch != null) {
-				//char c = scrambledWord.charAt(counter);
-				char c = ("Ã¥Ã¤Ã¶").charAt(counter);
+				char c = scrambledWord.charAt(counter);
+				//char c = ("som").charAt(counter);
 				System.out.println(c);
 				ch.out.write(Integer.toString(nbrNodes) + "\r");
 				ch.out.write(Character.toString(c));
@@ -190,10 +190,12 @@ public class ServerConnectionV2 {
 						else if(msg.toLowerCase().equals(serverController.word2 +  serverController.word1)) {
 							sendToEveryNode(korrekt);
 
-						} else if(msg.toLowerCase().equals("som")) {
-							sendToEveryNode(korrekt);
-
-						}	else {
+						}
+//						else if(msg.toLowerCase().equals("som")) {
+//							sendToEveryNode(korrekt);
+//
+//						}	
+						else {
 							sendToEveryNode(fel);
 
 						}
