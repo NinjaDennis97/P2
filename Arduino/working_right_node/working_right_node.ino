@@ -151,7 +151,7 @@ void setup() {
 }
 
 void loop() {
-  newIP();
+  readLetter();
   controll.run();
   connection();
   resetNeighbours();
@@ -252,7 +252,7 @@ void loop() {
   }
 }
 
-void newIP() {
+void readLetter() {
   if (javaClient.available()) {
     String ch = javaClient.readStringUntil('\r');
     if (isDigit(ch.charAt(0))) {

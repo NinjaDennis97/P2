@@ -54,7 +54,7 @@ public class ServerConnectionV2 {
 						BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 						PrintWriter out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 						System.out.println("Creating new thread for this client: " + clientSocket.getInetAddress());
-						//LÃ¤gg till att varje gÃ¥ng ny anslut sÃ¥ plusa connectedNodes.
+						//LÃƒÂ¤gg till att varje gÃƒÂ¥ng ny anslut sÃƒÂ¥ plusa connectedNodes.
 						clientIP = clientSocket.getInetAddress().getHostAddress();
 
 						if (startCounting = true) {
@@ -85,7 +85,7 @@ public class ServerConnectionV2 {
 
 						if ((secondConnection - firstConnection) > 10000) {
 							clientList.remove(id);
-							System.out.println("Tog bort frÃ¥n listan.");
+							System.out.println("Tog bort frÃƒÂ¥n listan.");
 							id = Integer.toString(Integer.valueOf(id) - 1);
 							firstConnection = 0;
 							secondConnection = 0;
@@ -93,14 +93,14 @@ public class ServerConnectionV2 {
 						}
 
 					}catch (IOException e) {
-						System.out.println("NÃ¥got gick fel serversocket");
+						System.out.println("NÃƒÂ¥got gick fel serversocket");
 						if(clientSocket !=null) {
 							clientSocket.close();
 						}
 					}
 				}
 			} catch (IOException e) {
-				System.out.println("NÃ¥got gick fel till kopplingen till servern");
+				System.out.println("NÃƒÂ¥got gick fel till kopplingen till servern");
 			}
 		}
 
@@ -129,7 +129,7 @@ public class ServerConnectionV2 {
 			ClientHandler ch = entry.getValue();
 			if (ch != null) {
 				//char c = scrambledWord.charAt(counter);
-				char c = ("åäö").charAt(counter);
+				char c = ("Ã¥Ã¤Ã¶").charAt(counter);
 				System.out.println(c);
 				ch.out.write(Integer.toString(nbrNodes) + "\r");
 				ch.out.write(Character.toString(c));
