@@ -6,14 +6,14 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "Adafruit_MCP23017.h"
+#include "Adafruit_MCP23008.h"
 
 //Ö =148 Ä = 132 Å= 133
 
 //Dessa två rader måste vara med.
 #define OLED_RESET 0  // GPIO0
 Adafruit_SSD1306 display(OLED_RESET);
-Adafruit_MCP23017 mcp;
+Adafruit_MCP23008 mcp;
 
 ThreadController controll = ThreadController();
 Thread receiverThread = Thread();
@@ -549,19 +549,36 @@ void receiverThreadRun() {
 // This function sends the word to the server when the word is long enough.
 // The node that runs this code will be the master node
 void check () {
+  Serial.println("check");
+  Serial.print("left_str:");
+  Serial.println(left_str);
+  Serial.print("right_str:");
+  Serial.println(right_str);
+  Serial.print("up_str:");
+  Serial.println(up_str);
+  Serial.print("down_str:");
+  Serial.println(down_str);
+  Serial.print("left:");
+  Serial.println(left_str.length());
+  Serial.print("right:");
+  Serial.println(right_str.length());
+  Serial.println(left_str.length() + right_str.length());
   if (left_str.length() + right_str.length() == antalNoder - 1) {
+    Serial.println("row");
     if(leftsIP[3] == 0 && right_str.length() == antalNoder - 1){
       Serial.println(own_letter + right_str);
       javaClient.println(own_letter + right_str);
       javaClient.flush();
     }
   } else if (up_str.length() + down_str.length() == antalNoder - 1) {
+    Serial.println("column");
     if(upsIP[3] == 0 && down_str.length() == antalNoder - 1){
       Serial.println(own_letter + down_str);
       javaClient.println(own_letter + down_str);
       javaClient.flush();
     }
   } else if (left_str.length() + right_str.length() + up_str.length() + down_str.length() == antalNoder - 1) {
+    Serial.println(up_str + own_letter + down_str + left_str + own_letter + right_str);
     javaClient.println(up_str + own_letter + down_str + left_str + own_letter + right_str);
     javaClient.flush();
   }
@@ -661,7 +678,7 @@ void connection() {
 //This function resets parts of the nodes "memmory" so they can be moved around and find new neighbors 
 void resetNeighbours() {
   if (digitalRead(INPUT_LEFT) == LOW) {
-    if (leftLowTime != 0 && (millis() - leftLowTime) > 2000) {
+    if (leftLowTime != 0 && (millis() - leftLowTime) > 500) {
       Serial.println("resetN2");
       sendLeft = false;
       pulsesToSendLeft = myNbr;
@@ -677,7 +694,7 @@ void resetNeighbours() {
   /*--------------------------------------------------------------*/
 
   if (digitalRead(INPUT_RIGHT) == LOW) {
-    if (rightLowTime != 0 && (millis() - rightLowTime) > 2000) {
+    if (rightLowTime != 0 && (millis() - rightLowTime) > 500) {
       Serial.println("resetN4");
       sendRight = false;
       pulsesToSendRight = myNbr;
@@ -692,7 +709,7 @@ void resetNeighbours() {
   }
   /*--------------------------------------------------------------*/
   if (digitalRead(INPUT_UP) == LOW) {
-    if (upLowTime != 0 && (millis() - upLowTime) > 2000) {
+    if (upLowTime != 0 && (millis() - upLowTime) > 500) {
       Serial.println("resetN4");
       sendUp = false;
       pulsesToSendUp= myNbr;
@@ -707,7 +724,7 @@ void resetNeighbours() {
   }
   /*--------------------------------------------------------------*/
   if (digitalRead(INPUT_DOWN) == LOW) {
-    if (downLowTime != 0 && (millis() - downLowTime) > 2000) {
+    if (downLowTime != 0 && (millis() - downLowTime) > 500) {
       Serial.println("resetN4");
       sendDown = false;
       pulsesToSendDown= myNbr;

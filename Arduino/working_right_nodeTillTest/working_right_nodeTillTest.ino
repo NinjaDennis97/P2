@@ -6,13 +6,14 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "Adafruit_MCP23008.h"
 
 //Ö =148 Ä = 132 Å= 133
-
 
 //Dessa två rader måste vara med.
 #define OLED_RESET 0  // GPIO0
 Adafruit_SSD1306 display(OLED_RESET);
+Adafruit_MCP23008 mcp;
 
 ThreadController controll = ThreadController();
 Thread receiverThread = Thread();
@@ -51,8 +52,8 @@ int rightLowTime, leftLowTime, upLowTime, downLowTime = 0;
 String left_str = "", right_str = "", up_str = "", down_str = "";
 void ICACHE_RAM_ATTR readPinRIGHT();
 void ICACHE_RAM_ATTR readPinLEFT();
-void ICACHE_RAM_ATTR readPinLowRIGHT();
-void ICACHE_RAM_ATTR readPinLowLEFT();
+void ICACHE_RAM_ATTR readPinUP();
+void ICACHE_RAM_ATTR readPinDOWN();
 
 IPAddress myIP(192, 168, 0, myNbr);             // IP address of the server
 IPAddress gateway(192, 168, 0, 1);          // gateway of your network
@@ -62,46 +63,72 @@ IPAddress rightsIP (192, 168, 0, 0);
 IPAddress upsIP (192, 168, 0, 0);
 IPAddress downsIP (192, 168, 0, 0);
 
+ /*--------------------------SetUP------------------------------------*/
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   //Display
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
-//  display.setTextSize(5);
-//  display.setTextColor(WHITE);
-//  display.setCursor(20,7);
-//  display.write(148);
   display.display();
   delay(500);
+  mcp.begin();
 
-#define OUTPUT_LEFT D3
-#define INPUT_LEFT D8
-#define INPUT_RIGHT D6
-#define OUTPUT_RIGHT D4
+//#define OUTPUT_LEFT D3
+//#define INPUT_LEFT D8
+//#define OUTPUT_RIGHT D4
+//#define INPUT_RIGHT D6
+//#define OUTPUT_UP D8 
+//#define INPUT_UP D7
 //#define OUTPUT_DOWN D8
+//#define INPUT_DOWN D7
+
+#define OUTPUT_LEFT 1
+#define INPUT_LEFT D8
+#define OUTPUT_RIGHT 2
+#define INPUT_RIGHT D6
+#define OUTPUT_UP 0 //ändra för up och ner
+#define INPUT_UP D5
+#define OUTPUT_DOWN 3
 #define INPUT_DOWN D7
-#define INPUT_UP D7
+
   attachInterrupt(digitalPinToInterrupt(INPUT_RIGHT), readPinRIGHT, CHANGE);
   attachInterrupt(digitalPinToInterrupt(INPUT_LEFT), readPinLEFT, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(INPUT_UP), readPinUP, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(INPUT_DOWN), readPinDOWN, CHANGE);
 
 
-  pinMode (OUTPUT_LEFT, OUTPUT);
-  pinMode (OUTPUT_RIGHT, OUTPUT);
-  pinMode (INPUT_LEFT, INPUT);
-  pinMode (INPUT_RIGHT, INPUT);
-
-
+//  pinMode (OUTPUT_LEFT, OUTPUT);
+//  pinMode (OUTPUT_RIGHT, OUTPUT);
+    pinMode (INPUT_LEFT, INPUT);
+    pinMode (INPUT_RIGHT, INPUT);
   //  pinMode (OUTPUT_UP,OUTPUT);
-  //  pinMode (INPUT_UP,INPUT);
-  //  pinMode (INPUT_DOWN,INPUT);
+    pinMode (INPUT_UP,INPUT);
+    pinMode (INPUT_DOWN,INPUT);
   //  pinMode (OUTPUT_DOWN,OUTPUT);
+  
 
 
-  digitalWrite(OUTPUT_LEFT, HIGH);
-  digitalWrite(OUTPUT_RIGHT, HIGH);
+  //digitalWrite(OUTPUT_LEFT, HIGH);
+  //digitalWrite(OUTPUT_RIGHT, HIGH);
   //  digitalWrite(OUTPUT_UP, HIGH);
   //  digitalWrite(OUTPUT_DOWN, HIGH);
+
+    mcp.pinMode(0, OUTPUT);
+  mcp.digitalWrite(0, HIGH);
+    mcp.pinMode(1, OUTPUT);
+  mcp.digitalWrite(1, HIGH);
+    mcp.pinMode(2, OUTPUT);
+  mcp.digitalWrite(2, HIGH);
+    mcp.pinMode(3, OUTPUT);
+  mcp.digitalWrite(3, HIGH);
+//  mcp.pinMode(OUTPUT_RIGHT, OUTPUT);
+//  mcp.digitalWrite(OUTPUT_RIGHT, HIGH);
+//  mcp.pinMode(OUTPUT_UP, OUTPUT);
+//  mcp.digitalWrite(OUTPUT_UP, HIGH);
+//  mcp.pinMode(OUTPUT_DOWN, OUTPUT);
+//  mcp.digitalWrite(OUTPUT_DOWN, HIGH);
 
   Serial.println("Setup");
   WiFi.config(myIP, gateway, subnet);                       // forces to use the fix IP
@@ -129,6 +156,7 @@ void setup() {
     Serial.println("Connection failed");
   }
 
+  //Nodes get there new IP
   String ch = javaClient.readStringUntil('\r');
   if (isDigit(ch.charAt(0))) {
     myNbr = ch.toInt();
@@ -143,49 +171,82 @@ void setup() {
   }
 
 
-
+  
   receiverThread.onRun(receiverThreadRun);
   receiverThread.setInterval(100);
   controll.add(&receiverThread);
 
 }
-
+  /*-------------------------Loop Start-------------------------------------*/
 void loop() {
   readLetter();
   controll.run();
   connection();
   resetNeighbours();
 
-
+  /*---------------Checks for a stable connection before sending pulses---------------------------------------*/
   if (digitalRead(INPUT_LEFT) == HIGH && millis() - leftHighTime > 400) {
     sendLeft = true;
   }
-
   if (sendLeft == true) {
     if (pulsesToSendLeft > 0) {
-      digitalWrite(OUTPUT_LEFT, LOW);
+      //digitalWrite(OUTPUT_LEFT, LOW);
+      mcp.digitalWrite(OUTPUT_LEFT, LOW);
       delay(5);
-      digitalWrite(OUTPUT_LEFT, HIGH);
+      //digitalWrite(OUTPUT_LEFT, HIGH);
+      mcp.digitalWrite(OUTPUT_LEFT, HIGH);
       Serial.print("send l");
       Serial.println(pulsesToSendLeft);
       pulsesToSendLeft--;
     }
   }
-
+  /*-------------------Send pulses right-------------------------------------------*/
   if (digitalRead(INPUT_RIGHT) == HIGH && millis() - rightHighTime > 400) {
     sendRight = true;
   }
   if (sendRight) {
     if (pulsesToSendRight > 0) {
-      digitalWrite(OUTPUT_RIGHT, LOW);
+      //digitalWrite(OUTPUT_RIGHT, LOW);
+      mcp.digitalWrite(OUTPUT_RIGHT, LOW);
       delay(5);
-      digitalWrite(OUTPUT_RIGHT, HIGH);
+      //digitalWrite(OUTPUT_RIGHT, HIGH);
+      mcp.digitalWrite(OUTPUT_RIGHT, HIGH);
 
       Serial.println(pulsesToSendRight);
       pulsesToSendRight--;
     }
   }
-
+/*-------------------Send pulses Up-------------------------------------------*/
+  if (digitalRead(INPUT_UP) == HIGH && millis() - upHighTime > 400) {
+    sendUp = true;
+  }
+  if (sendUp) {
+    if (pulsesToSendUp > 0) {
+      //digitalWrite(OUTPUT_UP, LOW);
+      mcp.digitalWrite(OUTPUT_UP, LOW);
+      delay(5);
+      //digitalWrite(OUTPUT_UP, HIGH);
+      mcp.digitalWrite(OUTPUT_UP, HIGH);
+      Serial.println(pulsesToSendUp);
+      pulsesToSendUp--;
+    }
+  }
+/*-------------------Send pulses Down-------------------------------------------*/
+  if (digitalRead(INPUT_DOWN) == HIGH && millis() - downHighTime > 400) {
+    sendDown = true;
+  }
+  if (sendDown) {
+    if (pulsesToSendDown > 0) {
+      //digitalWrite(OUTPUT_DOWN, LOW);
+      mcp.digitalWrite(OUTPUT_DOWN, LOW);
+      delay(5);
+      //digitalWrite(OUTPUT_DOWN, HIGH);
+      mcp.digitalWrite(OUTPUT_DOWN, HIGH);
+      Serial.println(pulsesToSendDown);
+      pulsesToSendDown--;
+    }
+  }
+/*-------------------Build the word-------------------------------------------*/
   if (timeToSendUpdateLeft) {
     if (leftsIP[3] != 0) {
       if (client.connect(leftsIP, 5000)) {
@@ -193,7 +254,7 @@ void loop() {
         String temp_str = "R" + own_letter + right_str + "\r";
         client.println(temp_str);
         client.flush();
-        Serial.print("sendning: ");
+        Serial.print("sending: ");
         Serial.println(temp_str);
       }
     } else {
@@ -207,7 +268,7 @@ void loop() {
         String temp_str = "L" + left_str + own_letter + "\r";
         client.println(temp_str);
         client.flush();
-        Serial.print("sendning: ");
+        Serial.print("sending: ");
         Serial.println(temp_str);
       }
     } else {
@@ -221,7 +282,7 @@ void loop() {
         String temp_str = "D" + own_letter + down_str + "\r";
         client.println(temp_str);
         client.flush();
-        Serial.print("sendning: ");
+        Serial.print("sending: ");
         Serial.println(temp_str);
       }
     } else {
@@ -235,15 +296,17 @@ void loop() {
         String temp_str = "U" + up_str + own_letter + "\r";
         client.println(temp_str);
         client.flush();
-        Serial.print("sendning: ");
+        Serial.print("sending: ");
         Serial.println(temp_str);
       }
     } else {
       timeToSendUpdateDown = false;
     }
   }
+/*-------------------End of loop-------------------------------------------*/
 }
 
+//Inturprates packedges from the Java server and handels them----------------
 void readLetter() {
   if (javaClient.available()) {
     String ch = javaClient.readStringUntil('\r');
@@ -265,7 +328,7 @@ void readLetter() {
       display.println("Fel");
       display.display();
       delay(2000);
-      uppdateNeighborsOLED();
+      updateOLED();
     }
     else {
       Serial.println(ch);
@@ -275,9 +338,10 @@ void readLetter() {
       right_str = "";
       up_str = "";
       down_str = "";
-      uppdateNeighborsOLED();
+      updateOLED();
     }
   }
+//Reconnecting to the Java server if the node would disconnect.
   if (!javaClient.connected()) {
     Serial.println("Closing connection");
     javaClient.flush();
@@ -286,10 +350,11 @@ void readLetter() {
     javaClient.connect(host, port);
     Serial.println("Reconnecting");
   }
-  delay(1000);
+  delay(1000); //Flytta på denna upp till reconnect funktionen ??
 }
 
-void uppdateNeighborsOLED() {
+//Functon for updating the OLED screen
+void updateOLED() {
   display.clearDisplay();
   display.display();
   delay(1000);
@@ -320,7 +385,7 @@ void uppdateNeighborsOLED() {
   display.println(myIP[3]);
   display.display();
 }
-
+//Interrupt for reading pulses comming from the left
 void readPinLEFT() {
   int readedValue = digitalRead(INPUT_LEFT);
   if (readedValue == HIGH) {
@@ -338,7 +403,7 @@ void readPinLEFT() {
     }
   }
 }
-
+//Interrupt for reading pulses comming from the right
 void readPinRIGHT() {
   int readedValue = digitalRead(INPUT_RIGHT);
   if (readedValue == HIGH) {
@@ -356,9 +421,45 @@ void readPinRIGHT() {
     }
   }
 }
+//Interrupt for reading pulses comming from the up side
+void readPinUP() {
+  int readedValue = digitalRead(INPUT_UP);
+  if (readedValue == HIGH) {
+    upHighTime = millis();
+  }
+  if (readedValue == LOW) {
+    upLowTime = millis();
+    if (millis() - upHighTime > 100) {
+      countPulsesUp = true;
+    }
+    if (countPulsesUp) {
+      up_nbr++;
+      Serial.print("U: ");
+      Serial.println(up_nbr);
+    }
+  }
+}
+//Interrupt for reading pulses comming from the down side
+void readPinDOWN() {
+  int readedValue = digitalRead(INPUT_DOWN);
+  if (readedValue == HIGH) {
+    downHighTime = millis();
+  }
+  if (readedValue == LOW) {
+    downLowTime = millis();
+    if (millis() - downHighTime > 100) {
+      countPulsesDown = true;
+    }
+    if (countPulsesDown) {
+      down_nbr++;
+      Serial.print("D: ");
+      Serial.println(down_nbr);
+    }
+  }
+}
 
-
-
+//This function reads incoming messages from other nodes. First handles
+//the ACK so theay are connection to the correct node. Secondly builds the word
 void receiverThreadRun() {
   WiFiClient newClient = server.available();
   if (newClient) {
@@ -410,6 +511,7 @@ void receiverThreadRun() {
         newClient.flush();
         Serial.println("minNACK");
       }
+  /*----------------------Builds the word----------------------------------------*/
     } else {
       char first_char = msg.charAt(0);
       if (first_char == 'L') {
@@ -438,13 +540,14 @@ void receiverThreadRun() {
         Serial.print("D_str:");
         Serial.println(down_str);
         check();
-      }
-      timeToSendUpdateUp = true;
+        timeToSendUpdateUp = true;
+      }  
     }
     newClient.stop();
   }
 }
-
+// This function sends the word to the server when the word is long enough.
+// The node that runs this code will be the master node
 void check () {
   if (left_str.length() + right_str.length() == antalNoder - 1) {
     if(leftsIP[3] == 0 && right_str.length() == antalNoder - 1){
@@ -464,7 +567,7 @@ void check () {
   }
 }
 
-
+// This function handelse the conndection between nodes
 void connection() {
   if (pulsesToSendLeft == 0 && leftsIP[3] == 0) {
     IPAddress tempIP(192, 168, 0, left_nbr);
@@ -478,7 +581,7 @@ void connection() {
       if (response1.equals("ACK") || response2.equals("ACK")) {
         Serial.println("WOOOHOOO!!!");
         leftsIP = tempIP;
-        uppdateNeighborsOLED();
+        updateOLED();
         timeToSendUpdateLeft = true;
         countPulsesLeft = false;
       }
@@ -500,7 +603,7 @@ void connection() {
       if (response1.equals("ACK") || response2.equals("ACK")) {
         Serial.println("WOOOHOOO!!!");
         rightsIP = tempIP;
-        uppdateNeighborsOLED();
+        updateOLED();
         timeToSendUpdateRight = true;
         countPulsesRight = false;
       }
@@ -523,7 +626,7 @@ void connection() {
       if (response1.equals("ACK") || response2.equals("ACK")) {
         Serial.println("WOOOHOOO!!!");
         upsIP = tempIP;
-        uppdateNeighborsOLED();
+        updateOLED();
         timeToSendUpdateUp = true;
         countPulsesUp = false;
       }
@@ -545,7 +648,7 @@ void connection() {
       if (response1.equals("ACK") || response2.equals("ACK")) {
         Serial.println("WOOOHOOO!!!");
         downsIP = tempIP;
-        uppdateNeighborsOLED();
+        updateOLED();
         timeToSendUpdateDown = true;
         countPulsesDown = false;
       }
@@ -555,7 +658,7 @@ void connection() {
     }
   }
 }
-
+//This function resets parts of the nodes "memmory" so they can be moved around and find new neighbors 
 void resetNeighbours() {
   if (digitalRead(INPUT_LEFT) == LOW) {
     if (leftLowTime != 0 && (millis() - leftLowTime) > 2000) {
@@ -568,7 +671,7 @@ void resetNeighbours() {
       leftLowTime = 0;
       left_str = "";
       timeToSendUpdateRight = true;
-      uppdateNeighborsOLED();
+      updateOLED();
     }
   }
   /*--------------------------------------------------------------*/
@@ -584,12 +687,38 @@ void resetNeighbours() {
       rightLowTime = 0;
       right_str = "";
       timeToSendUpdateLeft = true;
-      uppdateNeighborsOLED();
+      updateOLED();
     }
   }
   /*--------------------------------------------------------------*/
-
+  if (digitalRead(INPUT_UP) == LOW) {
+    if (upLowTime != 0 && (millis() - upLowTime) > 2000) {
+      Serial.println("resetN4");
+      sendUp = false;
+      pulsesToSendUp= myNbr;
+      countPulsesUp = false;
+      up_nbr = 0;
+      upsIP[3] = 0;
+      upLowTime = 0;
+      up_str = "";
+      timeToSendUpdateUp = true;
+      updateOLED();
+    }
+  }
   /*--------------------------------------------------------------*/
-
+  if (digitalRead(INPUT_DOWN) == LOW) {
+    if (downLowTime != 0 && (millis() - downLowTime) > 2000) {
+      Serial.println("resetN4");
+      sendDown = false;
+      pulsesToSendDown= myNbr;
+      countPulsesDown = false;
+      down_nbr = 0;
+      downsIP[3] = 0;
+      downLowTime = 0;
+      down_str = "";
+      timeToSendUpdateDown = true;
+      updateOLED();
+    }
+  }
   /*--------------------------------------------------------------*/
 }
