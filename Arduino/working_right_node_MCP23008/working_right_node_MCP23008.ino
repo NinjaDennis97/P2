@@ -49,7 +49,7 @@ int left_nbr = 0;
 int right_nbr = 0;
 int up_nbr = 0;
 int down_nbr = 0;
-int sentToLeft = 0, sentToRight = 0;
+int sentToLeft, sentToRight, sentToUp, sentToDown = 0;
 int rightHighTime, leftHighTime, upHighTime, downHighTime, readTime;
 int rightLowTime, leftLowTime, upLowTime, downLowTime = 0;
 String left_str = "", right_str = "", up_str = "", down_str = "";
@@ -174,7 +174,7 @@ void loop() {
   connection();
   resetNeighbours();
 
-  /*---------------Checks for a stable connection before sending pulses---------------------------------------*/
+  /*---------------Checks for a stable connection before sending pulses left---------------------------------------*/
   if (digitalRead(INPUT_LEFT) == HIGH && millis() - leftHighTime > 400) {
     sendLeft = true;
   }
@@ -379,7 +379,7 @@ void readPinLEFT() {
   }
   if (readedValue == LOW) {
     leftLowTime = millis();
-    if (millis() - leftHighTime > 100) {
+    if (millis() - leftHighTime > 150) {
       countPulsesLeft = true;
     }
     if (countPulsesLeft) {
@@ -397,7 +397,7 @@ void readPinRIGHT() {
   }
   if (readedValue == LOW) {
     rightLowTime = millis();
-    if (millis() - rightHighTime > 100) {
+    if (millis() - rightHighTime > 150) {
       countPulsesRight = true;
     }
     if (countPulsesRight) {
@@ -415,7 +415,7 @@ void readPinUP() {
   }
   if (readedValue == LOW) {
     upLowTime = millis();
-    if (millis() - upHighTime > 100) {
+    if (millis() - upHighTime > 150) {
       countPulsesUp = true;
     }
     if (countPulsesUp) {
@@ -433,7 +433,7 @@ void readPinDOWN() {
   }
   if (readedValue == LOW) {
     downLowTime = millis();
-    if (millis() - downHighTime > 100) {
+    if (millis() - downHighTime > 150) {
       countPulsesDown = true;
     }
     if (countPulsesDown) {
@@ -468,25 +468,17 @@ void receiverThreadRun() {
       } 
     }
     else if (msg.equals("up")) {
-      if (newClient.remoteIP()[3] == up_nbr) {
-        newClient.write("ACK\r");
-        newClient.flush();
-        Serial.println("minACK");
-      } else {
-        newClient.write("NACK\r");
-        newClient.flush();
-        Serial.println("minNACK");
+      if (newClient.remoteIP()[3] == up_nbr && upsIP[3] == 0) {
+        upsIP[3] = newClient.remoteIP()[3];
+        timeToSendUpdateUp = true;
+        updateOLED();
       }
     }
     else if (msg.equals("down")) {
-      if (newClient.remoteIP()[3] == down_nbr) {
-        newClient.write("ACK\r");
-        newClient.flush();
-        Serial.println("minACK");
-      } else {
-        newClient.write("NACK\r");
-        newClient.flush();
-        Serial.println("minNACK");
+      if (newClient.remoteIP()[3] == down_nbr && downsIP[3] == 0) {
+        downsIP[3] = newClient.remoteIP()[3];
+        timeToSendUpdateDown = true;
+        updateOLED();
       }
   /*----------------------Builds the word----------------------------------------*/
     } else {
@@ -572,47 +564,25 @@ void connection() {
     }
   }
   /*--------------------------------------------------------------*/
-  if (pulsesToSendUp == 0 && upsIP[3] == 0) {
+  if (pulsesToSendUp == 0 && sentToUp != up_nbr && upHighTime > 50 && up_str =="") {
     IPAddress tempIP(192, 168, 0, up_nbr);
     Serial.print("trying to connect to: ");
     Serial.println(up_nbr);
     if (client.connect(tempIP, 5000)) {
-      Serial.println(client.write("down"));
+      sentToUp = tempIP[3];
+      Serial.println(client.write("down\r"));
       client.flush();
-      String response1 = client.readStringUntil('\r');
-      String response2 = client.readStringUntil('\r');
-      if (response1.equals("ACK") || response2.equals("ACK")) {
-        Serial.println("WOOOHOOO!!!");
-        upsIP = tempIP;
-        updateOLED();
-        timeToSendUpdateUp = true;
-        countPulsesUp = false;
-      }
-      Serial.println(response1 + "1");
-      Serial.println(response2 + "2");
-      Serial.println(upsIP);
     }
   }
   /*--------------------------------------------------------------*/
-  if (pulsesToSendDown == 0 && downsIP[3] == 0) {
+  if (pulsesToSendDown == 0 && sentToDown != down_nbr && downHighTime > 50 && down_str =="") {
     IPAddress tempIP(192, 168, 0, down_nbr);
     Serial.print("trying to connect to: ");
     Serial.println(down_nbr);
     if (client.connect(tempIP, 5000)) {
-      Serial.println(client.write("up"));
+      sentToDown = tempIP[3];
+      Serial.println(client.write("up\r"));
       client.flush();
-      String response1 = client.readStringUntil('\r');
-      String response2 = client.readStringUntil('\r');
-      if (response1.equals("ACK") || response2.equals("ACK")) {
-        Serial.println("WOOOHOOO!!!");
-        downsIP = tempIP;
-        updateOLED();
-        timeToSendUpdateDown = true;
-        countPulsesDown = false;
-      }
-      Serial.println(response1 + "1");
-      Serial.println(response2 + "2");
-      Serial.println(downsIP);
     }
   }
 }
@@ -662,6 +632,7 @@ void resetNeighbours() {
       upLowTime = 0;
       up_str = "";
       timeToSendUpdateDown = true;
+      sentToUp = 0;
       updateOLED();
     }
   }
@@ -677,6 +648,7 @@ void resetNeighbours() {
       downLowTime = 0;
       down_str = "";
       timeToSendUpdateUp = true;
+      sentToDown = 0;
       updateOLED();
     }
   }
